@@ -12,6 +12,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class RegistrationServiceImplTest {
+    private static final int MIN_AGE = 18;
+    private static final int MIN_PASSWORD_LENGTH = 6;
+    private static final int MIN_LOGIN_LENGTH = 6;
     private RegistrationService registrationService;
     private User user;
 
@@ -34,65 +37,95 @@ class RegistrationServiceImplTest {
     @Test
     void registerWithDuplicateUserLogin_Fail() throws InvalidUserDataException {
         registrationService.register(user);
-        assertThrows(InvalidUserDataException.class, () -> registrationService.register(user));
-    }
-
-    @Test
-    void registerWithEmptyUserData_Fail() {
-        User user = new User();
-        assertThrows(InvalidUserDataException.class, () -> registrationService.register(user));
+        InvalidUserDataException invalidUserDataException = assertThrows(
+                InvalidUserDataException.class,
+                () -> registrationService.register(user));
+        assertEquals(String.format("User with login %s already exist.",
+                user.getLogin()), invalidUserDataException.getMessage());
     }
 
     @Test
     void registerWithNullUser_Fail() {
-        assertThrows(InvalidUserDataException.class, () -> registrationService.register(null));
-    }
-
-    @AfterEach
-    void tearDown() {
-        Storage.people.clear();
+        user = null;
+        InvalidUserDataException invalidUserDataException = assertThrows(
+                InvalidUserDataException.class,
+                () -> registrationService.register(user));
+        assertEquals("User cannot be null",
+                invalidUserDataException.getMessage());
     }
 
     @Test
     void registerUserWithPassword_Fail() {
         user.setPassword("pass");
-        assertThrows(InvalidUserDataException.class, () -> registrationService.register(user));
+        InvalidUserDataException invalidUserDataException = assertThrows(
+                InvalidUserDataException.class,
+                () -> registrationService.register(user));
+        assertEquals(String.format("Password length is less than %d characters.",
+                        MIN_PASSWORD_LENGTH), invalidUserDataException.getMessage());
     }
 
     @Test
     void registerUserWithNullPassword_Fail() {
         user.setPassword(null);
-        assertThrows(InvalidUserDataException.class, () -> registrationService.register(user));
+        InvalidUserDataException thrownException = assertThrows(
+                InvalidUserDataException.class,
+                () -> registrationService.register(user),
+                "Expected register() to throw InvalidUserDataException for null password"
+        );
+        assertEquals("Password cannot be null", thrownException.getMessage(),
+                "The exception message for null password was not as expected");
     }
 
     @Test
     void registerUserWithEmptyPassword_Fail() {
         user.setPassword("");
-        assertThrows(InvalidUserDataException.class, () -> registrationService.register(user));
+        InvalidUserDataException invalidUserDataException = assertThrows(
+                InvalidUserDataException.class,
+                () -> registrationService.register(user));
+        assertEquals(String.format("Password length is less than %d characters.",
+                MIN_PASSWORD_LENGTH), invalidUserDataException.getMessage());
     }
 
     @Test
     void registerUserWithNullLogin_Fail() {
         user.setLogin(null);
-        assertThrows(InvalidUserDataException.class, () -> registrationService.register(user));
+        InvalidUserDataException thrownException = assertThrows(
+                InvalidUserDataException.class,
+                () -> registrationService.register(user),
+                "Expected register() to throw InvalidUserDataException for null login"
+        );
+        assertEquals("Login cannot be null", thrownException.getMessage(),
+                "The exception message for null login was not as expected");
     }
 
     @Test
     void registerUserWithEmptyLogin_Fail() {
         user.setLogin("");
-        assertThrows(InvalidUserDataException.class, () -> registrationService.register(user));
+        InvalidUserDataException invalidUserDataException = assertThrows(
+                InvalidUserDataException.class,
+                () -> registrationService.register(user));
+        assertEquals(String.format("Login length is less than %d characters.",
+                MIN_LOGIN_LENGTH), invalidUserDataException.getMessage());
     }
 
     @Test
     void registerUserWithLogin_Fail() {
         user.setLogin("Len");
-        assertThrows(InvalidUserDataException.class, () -> registrationService.register(user));
+        InvalidUserDataException invalidUserDataException = assertThrows(
+                InvalidUserDataException.class,
+                () -> registrationService.register(user));
+        assertEquals(String.format("Login length is less than %d characters.",
+                MIN_LOGIN_LENGTH), invalidUserDataException.getMessage());
     }
 
     @Test
     void registerUserWithAge_Fail() {
         user.setAge(17);
-        assertThrows(InvalidUserDataException.class, () -> registrationService.register(user));
+        InvalidUserDataException invalidUserDataException = assertThrows(
+                InvalidUserDataException.class,
+                () -> registrationService.register(user));
+        assertEquals(String.format("User is too young. Min age is %d.",
+                MIN_AGE), invalidUserDataException.getMessage());
     }
 
     @Test
@@ -116,5 +149,10 @@ class RegistrationServiceImplTest {
         actual = registrationService.register(user3);
         assertEquals(user3, actual);
         assertDoesNotThrow(() -> registrationService.register(user));
+    }
+
+    @AfterEach
+    void tearDown() {
+        Storage.people.clear();
     }
 }

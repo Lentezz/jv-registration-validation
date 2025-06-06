@@ -16,28 +16,39 @@ public class RegistrationServiceImpl implements RegistrationService {
         if (user == null) {
             throw new InvalidUserDataException("User cannot be null");
         }
-        if (!validatePassword(user.getPassword())) {
-            throw new InvalidUserDataException(String.format(
-                    "Password is null or password length is less %d than  characters.",
-                    MIN_PASSWORD_LENGTH));
-        }
+        validatePassword(user.getPassword());
+        validateLogin(user.getLogin());
+
         if (user.getAge() < MIN_AGE) {
             throw new InvalidUserDataException(String.format(
                     "User is too young. Min age is %d.", MIN_AGE));
         }
-        if (!validateLogin(user.getLogin())) {
-            throw new InvalidUserDataException(String.format(
-                    "User already exist or login is invalid. Min login length is %d.",
-                    MIN_LOGIN_LENGTH));
-        }
+
         return storageDao.add(user);
     }
 
-    private boolean validatePassword(String password) {
-        return password != null && password.length() >= MIN_PASSWORD_LENGTH;
+    private void validatePassword(String password) {
+        if (password == null) {
+            throw new InvalidUserDataException("Password cannot be null");
+        }
+        if (password.length() < MIN_PASSWORD_LENGTH) {
+            throw new InvalidUserDataException(
+                    String.format("Password length is less than %d characters.",
+                            MIN_PASSWORD_LENGTH));
+        }
     }
 
-    private boolean validateLogin(String login) {
-        return login != null && storageDao.get(login) == null && login.length() >= MIN_LOGIN_LENGTH;
+    private void validateLogin(String login) {
+        if (login == null) {
+            throw new InvalidUserDataException("Login cannot be null");
+        }
+        if (login.length() < MIN_LOGIN_LENGTH) {
+            throw new InvalidUserDataException(
+                    String.format("Login length is less than %d characters.", MIN_LOGIN_LENGTH));
+        }
+        if (storageDao.get(login) != null) {
+            throw new InvalidUserDataException(
+                    String.format("User with login %s already exist.", login));
+        }
     }
 }
