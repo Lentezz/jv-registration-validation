@@ -14,16 +14,21 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     public User register(User user) throws InvalidUserDataException {
         if (user == null) {
-            throw new InvalidUserDataException("User has invalid details.");
+            throw new InvalidUserDataException("User cannot be null");
         }
         if (!validatePassword(user.getPassword())) {
-            throw new InvalidUserDataException("Invalid password.");
+            throw new InvalidUserDataException(String.format(
+                    "Password is null or password length is less %d than  characters.",
+                    MIN_PASSWORD_LENGTH));
         }
         if (user.getAge() < MIN_AGE) {
-            throw new InvalidUserDataException("User is too young.");
+            throw new InvalidUserDataException(String.format(
+                    "User is too young. Min age is %d.", MIN_AGE));
         }
         if (!validateLogin(user.getLogin())) {
-            throw new InvalidUserDataException("Invalid login or login already exists.");
+            throw new InvalidUserDataException(String.format(
+                    "User already exist or login is invalid. Min login length is %d.",
+                    MIN_LOGIN_LENGTH));
         }
         return storageDao.add(user);
     }
